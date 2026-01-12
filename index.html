@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Web Apps Collection</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        :root {
+            --primary-color: #4361ee;
+            --secondary-color: #3a0ca3;
+            --light-color: #f8f9fa;
+            --dark-color: #212529;
+            --success-color: #4cc9f0;
+            --warning-color: #f72585;
+            --card-bg: #ffffff;
+            --shadow: rgba(0, 0, 0, 0.08);
+        }
+        
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            color: var(--dark-color);
+            line-height: 1.6;
+            min-height: 100vh;
+            padding-bottom: 2rem;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        header {
+            background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 2rem 0;
+            text-align: center;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            border-radius: 0 0 20px 20px;
+        }
+        
+        .header-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .logo {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+        
+        .admin-panel {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-top: 1.5rem;
+            width: 100%;
+            max-width: 800px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .admin-title {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 1rem;
+        }
+        
+        .admin-title i {
+            font-size: 1.5rem;
+        }
+        
+        .filter-controls {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+        
+        .filter-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            padding: 0.6rem 1.2rem;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .filter-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+        
+        .filter-btn.active {
+            background: white;
+            color: var(--primary-color);
+        }
+        
+        .apps-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+        
+        .app-card {
+            background: var(--card-bg);
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 10px 20px var(--shadow);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+        
+        .app-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+        }
+        
+        .app-preview {
+            height: 200px;
+            width: 100%;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .app-preview iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            pointer-events: none;
+        }
+        
+        .app-content {
+            padding: 1.5rem;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .app-title {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+            color: var(--secondary-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .app-description {
+            color: #555;
+            margin-bottom: 1.5rem;
+            flex-grow: 1;
+        }
+        
+        .app-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: auto;
+        }
+        
+        .btn {
+            padding: 0.7rem 1.5rem;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: none;
+        }
+        
+        .btn-primary {
+            background: var(--primary-color);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: var(--secondary-color);
+            transform: translateY(-3px);
+        }
+        
+        .btn-secondary {
+            background: #f0f0f0;
+            color: var(--dark-color);
+        }
+        
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+        
+        .visibility-toggle {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+            color: #666;
+        }
+        
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+        
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 24px;
+        }
+        
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        
+        input:checked + .toggle-slider {
+            background-color: var(--success-color);
+        }
+        
+        input:checked + .toggle-slider:before {
+            transform: translateX(26px);
+        }
+        
+        .status-badge {
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        
+        .status-published {
+            background-color: rgba(76, 201, 240, 0.2);
+            color: #0a6c7e;
+        }
+        
+        .status-draft {
+            background-color: rgba(247, 37, 133, 0.2);
+            color: #a10e4e;
+        }
+        
+        .empty-state {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 4rem 2rem;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px var(--shadow);
+        }
+        
+        .empty-state i {
+            font-size: 4rem;
+            color: #ccc;
+            margin-bottom: 1.5rem;
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 3rem;
+            padding-top: 2rem;
+            border-top: 10px solid #ddd;
+            color: #666;
+        }
+        
+        .app-count {
+            display: inline-block;
+            background: var(--primary-color);
+            color: white;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-weight: 600;
+            margin-left: 0.5rem;
+        }
+        
+        @media (max-width: 768px) {
+            .apps-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .filter-controls {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .filter-btn {
+                width: 100%;
+                max-width: 300px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <i class="fas fa-code"></i>
+                </div>
+                <h1>My Web Apps Collection</h1>
+                <p class="subtitle">A personal collection of web applications I've created for various purposes. Toggle visibility to control which apps are publicly accessible.</p>
+                
+                <div class="admin-panel">
+                    <div class="admin-title">
+                        <i class="fas fa-cogs"></i>
+                        <h2>App Management Panel</h2>
+                    </div>
+                    
+                    <div class="filter-controls">
+                        <button class="filter-btn active" data-filter="all">All Apps</button>
+                        <button class="filter-btn" data-filter="published">Published</button>
+                        <button class="filter-btn" data-filter="draft">Draft</button>
+                        <button class="filter-btn" id="preview-mode">
+                            <i class="fas fa-eye"></i> Preview Mode
+                        </button>
+                    </div>
+                    
+                    <div style="text-align: center; margin-top: 1rem; color: rgba(255,255,255,0.8); font-size: 0.9rem;">
+                        <i class="fas fa-info-circle"></i> Toggle the switch on each app to publish/hide it from public view
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+    
+    <main class="container">
+        <div class="apps-grid" id="apps-container">
+            <!-- App cards will be generated here -->
+        </div>
+    </main>
+    
+    <footer class="container">
+        <p>Total apps: <span class="app-count" id="total-apps">0</span> | Published: <span class="app-count" id="published-count">0</span> | Draft: <span class="app-count" id="draft-count">0</span></p>
+        <p style="margin-top: 0.5rem;">&copy; <span id="current-year"></span> Personal Web Apps Collection. All rights reserved.</p>
+    </footer>
+    
+    <script>
+        // App data - in a real scenario, this could come from an API or database
+        const apps = [
+            {
+                id: 1,
+                title: "Iurii M Repertoir",
+                description: "A personal song repertoire with playable tracks. This app helps me organize and practice songs I can play and sing.",
+                url: "https://mjv1981-art.github.io/Iurii-M-Repertoir/",
+                previewUrl: "https://mjv1981-art.github.io/Iurii-M-Repertoir/",
+                icon: "fas fa-music",
+                published: true,
+                category: "music"
+            },
+            {
+                id: 2,
+                title: "Hamsterland Declaration",
+                description: "A fun declaration for my kids about the rules and joys of Hamsterland. Created to make rules more engaging for children.",
+                url: "https://mjv1981-art.github.io/hamsterland-site/index.html",
+                previewUrl: "https://mjv1981-art.github.io/hamsterland-site/index.html",
+                icon: "fas fa-shield-cat",
+                published: true,
+                category: "family"
+            },
+            {
+                id: 3,
+                title: "Pet Rat Monya",
+                description: "A virtual pet app for my daughter to take care of her digital pet rat. Teaches responsibility and care for animals.",
+                url: "https://mjv1981-art.github.io/pet-rat-monya/",
+                previewUrl: "https://mjv1981-art.github.io/pet-rat-monya/",
+                icon: "fas fa-paw",
+                published: false,
+                category: "family"
+            },
+            {
+                id: 4,
+                title: "Snake Game",
+                description: "A simple Snake game for procastination.",
+                url: "https://mjv1981-art.github.io/snake-game-simple/",
+                previewUrl: "https://mjv1981-art.github.io/snake-game-simple/",
+                icon: "fas fa-worm",
+                published: true,
+                category: "utilities"
+            },
+            {
+                id: 5,
+                title: "Expense Tracker",
+                description: "Simple expense tracking app to monitor personal and family spending. Visualizes expenses with charts.",
+                url: "#",
+                previewUrl: "https://via.placeholder.com/400x250/3a0ca3/ffffff?text=Expense+Tracker+Preview",
+                icon: "fas fa-chart-pie",
+                published: true,
+                category: "utilities"
+            },
+            {
+                id: 6,
+                title: "MFU Generator",
+                description: "Creates meeting follow ups out of text, transcript or session recording.",
+                url: "https://jumbo.ninja/",
+                previewUrl: "https://jumbo.ninja/",
+                icon: "fas fa-file-pen",
+                published: false,
+                category: "health"
+            }
+        ];
+        
+        // DOM elements
+        const appsContainer = document.getElementById('apps-container');
+        const filterButtons = document.querySelectorAll('.filter-btn');
+        const previewModeBtn = document.getElementById('preview-mode');
+        const totalAppsEl = document.getElementById('total-apps');
+        const publishedCountEl = document.getElementById('published-count');
+        const draftCountEl = document.getElementById('draft-count');
+        
+        // State
+        let currentFilter = 'all';
+        let previewMode = false;
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set current year in footer
+            document.getElementById('current-year').textContent = new Date().getFullYear();
+            
+            // Load apps from localStorage or use default
+            let savedApps = localStorage.getItem('myWebApps');
+            if (savedApps) {
+                const parsedApps = JSON.parse(savedApps);
+                // Merge saved published status with default app data
+                parsedApps.forEach(savedApp => {
+                    const defaultApp = apps.find(app => app.id === savedApp.id);
+                    if (defaultApp) {
+                        defaultApp.published = savedApp.published;
+                    }
+                });
+            }
+            
+            renderApps();
+            updateCounters();
+            
+            // Filter button event listeners
+            filterButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    // Skip if it's the preview mode button
+                    if (this.id === 'preview-mode') return;
+                    
+                    // Update active button
+                    filterButtons.forEach(btn => btn.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    // Set filter and render apps
+                    currentFilter = this.dataset.filter;
+                    renderApps();
+                });
+            });
+            
+            // Preview mode toggle
+            previewModeBtn.addEventListener('click', function() {
+                previewMode = !previewMode;
+                
+                if (previewMode) {
+                    this.innerHTML = '<i class="fas fa-eye-slash"></i> Exit Preview';
+                    this.style.backgroundColor = 'var(--warning-color)';
+                } else {
+                    this.innerHTML = '<i class="fas fa-eye"></i> Preview Mode';
+                    this.style.backgroundColor = '';
+                }
+                
+                renderApps();
+            });
+        });
+        
+        // Render apps based on current filter
+        function renderApps() {
+            // Clear container
+            appsContainer.innerHTML = '';
+            
+            // Filter apps based on current filter
+            let filteredApps = apps;
+            if (currentFilter === 'published') {
+                filteredApps = apps.filter(app => app.published);
+            } else if (currentFilter === 'draft') {
+                filteredApps = apps.filter(app => !app.published);
+            }
+            
+            // If no apps match the filter, show empty state
+            if (filteredApps.length === 0) {
+                appsContainer.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-box-open"></i>
+                        <h3>No apps found</h3>
+                        <p>No apps match the current filter. Try changing the filter or publish some apps.</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            // Create app cards
+            filteredApps.forEach(app => {
+                const appCard = document.createElement('div');
+                appCard.className = 'app-card';
+                
+                // Determine if we show iframe or placeholder in preview mode
+                let previewContent = '';
+                if (previewMode && app.published) {
+                    // Show iframe preview for published apps in preview mode
+                    previewContent = `
+                        <iframe src="${app.previewUrl}" title="${app.title} Preview" scrolling="no"></iframe>
+                    `;
+                } else {
+                    // Show placeholder image
+                    previewContent = `
+                        <div style="width:100%;height:100%;background:linear-gradient(135deg, #${Math.floor(Math.random()*16777215).toString(16)} 0%, #${Math.floor(Math.random()*16777215).toString(16)} 100%);display:flex;align-items:center;justify-content:center;color:white;font-size:1.5rem;">
+                            <i class="${app.icon}"></i>
+                            <span style="margin-left:10px;">${app.title}</span>
+                        </div>
+                    `;
+                }
+                
+                appCard.innerHTML = `
+                    <div class="app-preview">
+                        ${previewContent}
+                    </div>
+                    <div class="app-content">
+                        <div class="app-title">
+                            <span><i class="${app.icon}"></i> ${app.title}</span>
+                            <span class="status-badge ${app.published ? 'status-published' : 'status-draft'}">
+                                ${app.published ? 'Published' : 'Draft'}
+                            </span>
+                        </div>
+                        <p class="app-description">${app.description}</p>
+                        <div class="app-actions">
+                            <a href="${app.url}" target="_blank" class="btn btn-primary">
+                                <i class="fas fa-external-link-alt"></i> Open App
+                            </a>
+                            <div class="visibility-toggle">
+                                <span>${app.published ? 'Public' : 'Hidden'}</span>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" ${app.published ? 'checked' : ''} data-id="${app.id}">
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                appsContainer.appendChild(appCard);
+            });
+            
+            // Add event listeners to toggle switches
+            document.querySelectorAll('.toggle-switch input').forEach(toggle => {
+                toggle.addEventListener('change', function() {
+                    const appId = parseInt(this.dataset.id);
+                    toggleAppVisibility(appId, this.checked);
+                });
+            });
+        }
+        
+        // Toggle app visibility (published status)
+        function toggleAppVisibility(appId, isPublished) {
+            const appIndex = apps.findIndex(app => app.id === appId);
+            if (appIndex !== -1) {
+                apps[appIndex].published = isPublished;
+                
+                // Save to localStorage
+                const appsToSave = apps.map(app => ({
+                    id: app.id,
+                    published: app.published
+                }));
+                localStorage.setItem('myWebApps', JSON.stringify(appsToSave));
+                
+                // Update counters and re-render if needed
+                updateCounters();
+                
+                // If current filter is not 'all', we need to re-render
+                if (currentFilter !== 'all') {
+                    renderApps();
+                }
+                
+                // Show notification
+                showNotification(`${apps[appIndex].title} is now ${isPublished ? 'published' : 'hidden'}`, isPublished);
+            }
+        }
+        
+        // Update counter displays
+        function updateCounters() {
+            const total = apps.length;
+            const published = apps.filter(app => app.published).length;
+            const draft = total - published;
+            
+            totalAppsEl.textContent = total;
+            publishedCountEl.textContent = published;
+            draftCountEl.textContent = draft;
+        }
+        
+        // Show notification
+        function showNotification(message, isSuccess) {
+            // Remove existing notification
+            const existingNotification = document.querySelector('.notification');
+            if (existingNotification) {
+                existingNotification.remove();
+            }
+            
+            // Create notification
+            const notification = document.createElement('div');
+            notification.className = `notification ${isSuccess ? 'success' : 'warning'}`;
+            notification.innerHTML = `
+                <i class="fas fa-${isSuccess ? 'check-circle' : 'exclamation-circle'}"></i>
+                <span>${message}</span>
+            `;
+            
+            // Style notification
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: ${isSuccess ? 'var(--success-color)' : 'var(--warning-color)'};
+                color: white;
+                padding: 1rem 1.5rem;
+                border-radius: 10px;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+                z-index: 1000;
+                animation: slideIn 0.3s ease;
+            `;
+            
+            // Add animation keyframes
+            const styleSheet = document.createElement('style');
+            styleSheet.textContent = `
+                @keyframes slideIn {
+                    from { transform: translateX(100%); opacity: 0; }
+                    to { transform: translateX(0); opacity: 1; }
+                }
+            `;
+            document.head.appendChild(styleSheet);
+            
+            document.body.appendChild(notification);
+            
+            // Remove notification after 3 seconds
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.style.animation = 'slideIn 0.3s ease reverse';
+                    setTimeout(() => notification.remove(), 300);
+                }
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
