@@ -1,0 +1,15 @@
+{
+  "name": "Starfall Pulse",
+  "short_name": "Starfall Pulse",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "display_override": ["fullscreen", "standalone"],
+  "orientation": "portrait-primary",
+  "background_color": "#10091e",
+  "theme_color": "#10091e",
+  "icons": [
+    {"src": "icons/starfall-192.png", "sizes": "192x192", "type": "image/png"},
+    {"src": "icons/starfall-512.png", "sizes": "512x512", "type": "image/png"}
+  ]
+}
