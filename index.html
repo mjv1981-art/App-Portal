@@ -113,6 +113,7 @@
             { id: 14, title: "KnowVerse", description: "Интерактивная образовательная платформа для детей.", url: "https://know-verse-learn.base44.app", published: true, kind: "app", cover: "knowverse" },
             { id: 15, title: "Retro Waves Starfall", description: "A horizontal space shooter through asteroid belts and alien worlds.", url: "https://mjv1981-art.github.io/retro-waves-starfall/", published: true, kind: "game", family: "Retro Waves", cover: "retro-waves-starfall" },
             { id: 16, title: "Starfall Pulse", description: "A portrait Retro Waves space shooter with touch controls, five flight stages, and an unlockable ship hangar.", url: "https://mjv1981-art.github.io/App-Portal/starfall-pulse/", published: true, kind: "game", family: "Retro Waves", cover: "starfall-pulse" },
+            { id: 18, title: "Mountain Rescue", description: "Fly a rescue helicopter through ten pixel-art missions, from alpine ridges to storms and northern lights.", url: "https://mjv1981-art.github.io/App-Portal/mountain-rescue/", published: true, kind: "game", family: "Retro Waves", mediaDirectory: "./mountain-rescue" },
             { id: 17, title: "Hamster Hit", description: "A fast whack-a-hamster arcade game with bright knockout effects, streaks, and a Stampede round.", url: "https://mjv1981-art.github.io/Hamster-Hit/", published: true, kind: "game", family: "Retro Waves", cover: "hamster-hit" }
         ];
 
@@ -162,8 +163,9 @@
 
         function makeCard(app) {
             const card = document.createElement('article');
-            const media = `./assets/previews/${app.id}`;
-            const cover = app.cover ? `./assets/covers/${app.cover}.jpg` : `${media}.jpg`;
+            const media = app.mediaDirectory ? `${app.mediaDirectory}/preview` : `./assets/previews/${app.id}`;
+            const cover = app.mediaDirectory ? `${app.mediaDirectory}/cover.jpg` : app.cover ? `./assets/covers/${app.cover}.jpg` : `${media}.jpg`;
+            const qr = app.mediaDirectory ? `${app.mediaDirectory}/phone-qr.png` : `./assets/app-qr/${app.id}.png`;
             const launchText = app.kind === 'game' ? 'Play' : 'Open app';
             card.className = 'app-card';
             card.innerHTML = `
@@ -187,7 +189,7 @@
                     <details class="app-qr">
                         <summary>Phone QR code</summary>
                         <a href="${app.url}" target="_blank" rel="noopener noreferrer" aria-label="Open ${app.title}">
-                            <img src="./assets/app-qr/${app.id}.png" width="144" height="144" alt="" loading="lazy" decoding="async">
+                            <img src="${qr}" width="144" height="144" alt="" loading="lazy" decoding="async">
                         </a>
                     </details>
                 </div>`;
