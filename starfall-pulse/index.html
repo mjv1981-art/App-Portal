@@ -292,7 +292,7 @@ h1 em{display:inline-block;font-style:normal;color:#eab5ff;font-size:1.19em;text
 .hud-row { gap:6px }
 .hud-row .icon-btn { flex:0 0 44px; }
 .flight-bottom { left:max(12px,env(safe-area-inset-left));right:max(12px,env(safe-area-inset-right)); }
-.difficulty { min-inline-size:0; margin:0; padding:0; border:0; display:grid; grid-template-columns:1fr 1fr; gap:6px; }
+.difficulty { min-inline-size:0; margin:0; padding:0; border:0; display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:6px; }
 .difficulty legend { margin-bottom:6px;color:#eed9f6;font-weight:800;font-size:.74rem;letter-spacing:.105em; }
 .difficulty label { position:relative;cursor:pointer; }
 .difficulty input { position:absolute;opacity:0; }
@@ -302,16 +302,20 @@ h1 em{display:inline-block;font-style:normal;color:#eab5ff;font-size:1.19em;text
 #modeTip { min-height:1.3em;margin:0 0 2px; }
 .shield-stat.low-shield { color:#ff999d; }
 .shield-stat.low-shield b { background:linear-gradient(90deg,#e64660,#ff897c);box-shadow:0 0 9px #ff537e99; }
-#cabinet[data-medium] #dpad,#cabinet[data-medium] .easy-help { display:none!important; }
-#cabinet[data-medium] #fireControl { display:grid;gap:2px;min-width:122px;min-height:56px; }
+#cabinet[data-manual] #dpad,#cabinet[data-manual] .easy-help { display:none!important; }
+#cabinet[data-manual] #fireControl { display:grid;gap:2px;min-width:122px;min-height:56px; }
 #ammo { font-size:.67rem;letter-spacing:.03em; }
 .flight-speed { position:absolute;left:0;bottom:42px;color:#e5cffa;background:#150c26d9;border:1px solid #845994;padding:5px 7px;font-size:.68rem;white-space:nowrap; }
-#cabinet[data-medium] .flight-bottom .dust { position:static; }
+#cabinet[data-manual] .flight-bottom .dust { position:static; }
 @media (max-height:590px) {
   .menu { overflow:auto;overscroll-behavior:contain; }
   .menu-title { margin-top:18px;margin-bottom:18px; }
   .menu-actions { gap:6px; }
 }
+
+.difficulty input[value=hard]:checked + span { background:#4b2539;border-color:#ff9caa;box-shadow:inset 0 -3px #9c4961;color:#fff0f3; }
+.blockade-status { margin-top:7px;color:#ffdace;font-size:.70rem;font-weight:800;letter-spacing:.06em; }
+.blockade-status[data-overtime] { color:#ff9da3; }
 
 </style>
 </head>
@@ -340,6 +344,7 @@ h1 em{display:inline-block;font-style:normal;color:#eab5ff;font-size:1.19em;text
         <div class="shield-stat"><span id="shieldLabel">SHIELD</span><div class="shield-track"><b id="shieldFill"></b></div></div>
         <span id="mark" class="mark">MK I</span><span id="score" class="score">000000</span>
       </div>
+      <p id="blockade" class="blockade-status" role="status" hidden></p>
     </header>
     <div class="fever" aria-label="Hyperdrive charge"><span id="feverStatus">HYPER</span><div class="fever-track"><b id="feverFill"></b></div></div>
     <div class="flight-bottom">
@@ -373,6 +378,7 @@ h1 em{display:inline-block;font-style:normal;color:#eab5ff;font-size:1.19em;text
         <legend>DIFFICULTY</legend>
         <label><input type="radio" name="difficulty" value="easy" checked><span>EASY</span></label>
         <label><input type="radio" name="difficulty" value="medium"><span>MEDIUM</span></label>
+        <label><input type="radio" name="difficulty" value="hard"><span>HARD</span></label>
       </fieldset>
       <p id="modeTip">Auto-fire while you steer</p>
       <button id="launch" class="primary">START FLIGHT <span aria-hidden="true">✦</span></button>
@@ -394,7 +400,7 @@ h1 em{display:inline-block;font-style:normal;color:#eab5ff;font-size:1.19em;text
       <button id="returnMenu" class="secondary">END FLIGHT</button>
       <p class="quiet easy-help wide-tip">Arrow keys or WASD steer. Space fires. X uses a payload.</p>
       <p class="quiet easy-help mobile-only">Hold a direction to move and shoot. Hold FIRE to shoot in place. Tap the payload button to use a special.</p>
-      <p class="quiet medium-help" hidden>Drag to steer. Hold FIRE or Space to shoot. Use PAYLOAD or X to fire a special.</p>
+      <p class="quiet manual-help" hidden>Drag to steer. Hold FIRE or Space to shoot. Use PAYLOAD or X to fire a special.</p>
     </div>
   </section>
   <div id="fullscreenNotice" class="fullscreen-notice" role="status" hidden></div>
@@ -424,6 +430,12 @@ const between = (a,b,p) => {
 };
 const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const format = n => Math.floor(n).toLocaleString('en-US');
+
+const difficulties = {
+  easy:{name:'Easy',tip:'Auto-fire while you steer',manual:false,armor:1,speed:[1,1],waveInterval:1,projectileSpeed:1,shieldDelay:0,shieldRate:1,mustBreakBlockade:false},
+  medium:{name:'Medium',tip:'Manual fire · Heavier waves and tougher armor',manual:true,armor:2,speed:[1.12,1.62],waveInterval:1,projectileSpeed:1,shieldDelay:0,shieldRate:1,mustBreakBlockade:false},
+  hard:{name:'Hard',tip:'Faster waves · Defeat bosses to advance',manual:true,armor:2.5,speed:[1.48,1.85],waveInterval:.80,projectileSpeed:1.15,shieldDelay:.8,shieldRate:.75,mustBreakBlockade:true}
+};
 
 const zones = [
   {name:'Amethyst Reach', surface:'Rust Canyons', a:'#100920', b:'#301445', flare:'#8a49b0', ground:['#2e1029','#623344','#b9665d','#f39772']},
@@ -466,7 +478,7 @@ const profile = {
   km:Number.isFinite(saved.km) ? Math.max(0,saved.km) : 0,
   best:Number.isFinite(saved.best) ? Math.max(0,saved.best) : 0,
   sound:saved.sound !== false,
-  difficulty:saved.difficulty==='medium'?'medium':'easy',
+  difficulty:Object.hasOwn(difficulties,saved.difficulty)?saved.difficulty:'easy',
   owned:['viper','pink','none'],
   hull:'viper',trail:'pink',pet:'none'
 };
@@ -486,7 +498,7 @@ function fit() {
   canvas.height=Math.round(box.height*density);
   scaleX=canvas.width/W;
   scaleY=canvas.height/H;
-  const pad=el(run?.medium?'payload':'dpad').getBoundingClientRect();
+  const pad=el(run?.rules.manual?'payload':'dpad').getBoundingClientRect();
   flightBottom=pad.height && box.height
     ? clamp((pad.top-box.top)*H/box.height-23,H*.50,H-55)
     : H-55;
@@ -554,15 +566,13 @@ for(const button of fullscreenButtons) button.onclick=toggleFullscreen;
 for(const type of ['fullscreenchange','webkitfullscreenchange']) document.addEventListener(type,()=>{syncFullscreen();fit();});
 function syncDifficulty(){
   for(const option of difficultyOptions) option.checked=option.value===profile.difficulty;
-  el('modeTip').textContent=profile.difficulty==='medium'
-    ? 'Manual fire · Heavier waves and tougher armor'
-    : 'Auto-fire while you steer';
+  el('modeTip').textContent=difficulties[profile.difficulty].tip;
 }
 for(const option of difficultyOptions) option.addEventListener('change',()=>{
-  if(option.checked){profile.difficulty=option.value;syncDifficulty();save();}
+  if(option.checked && Object.hasOwn(difficulties,option.value)){profile.difficulty=option.value;syncDifficulty();save();}
 });
 function shieldIsLow(){
-  return Boolean(run?.medium && run.ship.shield<=shieldWarning);
+  return Boolean(run?.rules.manual && run.ship.shield<=shieldWarning);
 }
 function shieldAlarm(){
   if(screen!=='play'||!shieldIsLow()||!profile.sound){
@@ -705,7 +715,7 @@ function resetRun(){
   wakeAudio();
   pointer=null;lastTap=null;keys.clear();
   run={
-    medium:profile.difficulty==='medium',speed:1,scrollTime:0,ammo:{2:0,3:0},ammoAt:0,alarmAt:0,evade:null,
+    rules:difficulties[profile.difficulty],speed:1,scrollTime:0,ammo:{2:0,3:0},ammoAt:0,alarmAt:0,evade:null,
     bosses:[],defeatedBosses:new Set(),
     ship:{x:W/2,y:H*.79,targetX:W/2,targetY:H*.79,bank:0,shield:100,critical:false,inv:0,afterHit:9},
     time:0,phase:0,phaseTime:0,sector:0,distance:0,score:0,collected:0,mark:1,fever:0,hyper:0,combo:0,comboTime:0,
@@ -714,30 +724,30 @@ function resetRun(){
     load:[{id:'pulse',count:2}],payloadFlash:0,transition:0,bossDone:false,freeze:0,flash:0,shine:0,shake:0,
     banner:null
   };
-  cabinet.toggleAttribute('data-medium',run.medium);
-  cabinet.querySelector('.medium-help').hidden=!run.medium;
+  cabinet.toggleAttribute('data-manual',run.rules.manual);
+  cabinet.querySelector('.manual-help').hidden=!run.rules.manual;
   clearControls();switchScreen('play');fit();
   startPhase(0);
   hud();sfx('launch');
 }
 function startPhase(index){
   run.phase=index;run.phaseTime=0;run.spawn=index===4?0:1.0;run.spawnCount=0;
-  run.speed=run.medium?rand(1.12,1.62):1;
+  run.speed=run.rules.manual?rand(...run.rules.speed):1;
   for(const key of ['enemies','gates','anomalies','ground','dustClouds','hazards','shots']) run[key]=[];
-  run.bosses=[];run.bossDone=false;
+  run.bosses=[];run.bossDone=false;run.blockadeOvertime=false;
   const p=phases[index], zone=zones[run.sector%zones.length];
-  const hint=run.medium?[
+  const hint=run.rules.manual?[
     'Drag to steer · Hold FIRE to shoot','More formations ahead',
     'Shoot emitters, hulks and anomaly cores','Hold FIRE to drop charges over ground units',
-    'Destroy the fleet or survive the barrage'
+    run.rules.mustBreakBlockade?'Defeat the fleet to warp':'Destroy the fleet or survive the barrage'
   ][index]:p.hint;
   if(index===4){
     const count=blockadeSize();
     for(let slot=0;slot<count;slot++){
-      createBoss(run.medium?(run.sector+slot)%bossTypes.length:0,{slot,total:count,lane:W*(slot+.5)/count});
+      createBoss(run.rules.manual?(run.sector+slot)%bossTypes.length:0,{slot,total:count,lane:W*(slot+.5)/count});
     }
   }
-  banner(run.medium&&index===4&&blockadeSize()>1?'BATTLECRUISER FLEET':p.enter,
+  banner(run.rules.manual&&index===4&&blockadeSize()>1?'BATTLECRUISER FLEET':p.enter,
     index===0?zone.name+' · '+hint:index===3?zone.surface+' · '+hint:hint,4.2);
   if(index===1||index===4) sfx('warn');
 }
@@ -774,11 +784,19 @@ function hud(){
   el('shieldLabel').parentElement.classList.toggle('critical',s.critical);
   el('shieldLabel').parentElement.classList.toggle('low-shield',shieldIsLow());
   const speed=el('speed'), ammo=el('ammo');
-  speed.hidden=ammo.hidden=!run.medium;
-  if(run.medium){
-    speed.textContent=`SPEED ×${run.speed.toFixed(2)}`;
+  speed.hidden=ammo.hidden=!run.rules.manual;
+  if(run.rules.manual){
+    speed.textContent=`${run.rules.mustBreakBlockade?run.rules.name.toUpperCase()+' · ':'SPEED '}×${run.speed.toFixed(2)}`;
     const count=burstCount();
     ammo.textContent=count===1?'SINGLE ∞':`BURST ×${count} · ${run.ammo[count]}`;
+  }
+  const blockade=el('blockade');
+  blockade.hidden=!run.rules.mustBreakBlockade||index!==4||run.bossDone;
+  if(!blockade.hidden){
+    const remaining=run.bosses.filter(boss=>!boss.destroyed).length;
+    const status=`BOSSES LEFT ${remaining} / ${run.bosses.length}${run.blockadeOvertime?' · OVERTIME':''}`;
+    if(blockade.textContent!==status) blockade.textContent=status;
+    blockade.toggleAttribute('data-overtime',run.blockadeOvertime);
   }
   el('runDust').innerHTML='<b aria-hidden="true">◆</b> '+format(run.collected);
   el('feverStatus').textContent=run.hyper>0?Math.ceil(run.hyper)+'s':'HYPER';
@@ -811,7 +829,7 @@ canvas.addEventListener('pointermove',event=>{
 });
 function releasePointer(event,cancelled){
   if(pointer?.id!==event.pointerId) return;
-  if(!cancelled && screen==='play' && !run.medium && !pointer.moved && performance.now()-pointer.t<235){
+  if(!cancelled && screen==='play' && !run.rules.manual && !pointer.moved && performance.now()-pointer.t<235){
     const now=performance.now();
     if(lastTap && now-lastTap.t<350 && dist(lastTap,pointer)<48){firePayload();lastTap=null;}
     else lastTap={x:pointer.x,y:pointer.y,t:now};
@@ -824,7 +842,7 @@ canvas.addEventListener('pointercancel',e=>releasePointer(e,true));
 canvas.addEventListener('lostpointercapture',e=>releasePointer(e,true));
 function tapFlightControl(control){
   const ship=run.ship;
-  if((!run.medium||control==='fire') && run.shotClock<=0) run.shotClock=fire();
+  if((!run.rules.manual||control==='fire') && run.shotClock<=0) run.shotClock=fire();
   const dx=Number(control==='right')-Number(control==='left');
   const dy=Number(control==='down')-Number(control==='up');
   if(dx||dy){
@@ -927,7 +945,7 @@ function earn(o){
   run.collected++;profile.bank++;addScore(12);
   const mark=1+markAt.slice(1).filter(t=>run.collected>=t).length;
   if(mark>run.mark){
-    run.mark=mark;banner('WEAPON MK '+marks[mark-1],run.medium?'Firing rate upgraded':'Firepower upgraded',2.5);sfx('mark');
+    run.mark=mark;banner('WEAPON MK '+marks[mark-1],run.rules.manual?'Firing rate upgraded':'Firepower upgraded',2.5);sfx('mark');
   }else if(run.time-(run.lastChime || 0)>.11){sfx('crystal');run.lastChime=run.time;}
   if(run.hyper<=0){
     run.fever+=4;
@@ -973,7 +991,7 @@ function hurt(amount,impact=false){
   if(s.critical){sparks(s.x,s.y,'#ff8279',30);sfx('hit');endRun('Flight complete');return;}
   s.shield=Math.max(0,s.shield-amount);
   s.afterHit=0;run.shake=.21;run.flash=.105;
-  if(run.medium&&impact) run.evade={type:Math.floor(rand(0,4)),life:.38};
+  if(run.rules.manual&&impact) run.evade={type:Math.floor(rand(0,4)),life:.38};
   sfx('hit');sparks(s.x,s.y,'#8fd9ff');
   if(s.shield===0){
     s.critical=true;s.inv=1.5;
@@ -997,7 +1015,7 @@ function fire(){
     return .095;
   }
   const color=['#93faec','#a8fbd5','#a4e7ff','#e1b2ff','#faffab'][mk-1];
-  if(run.medium){
+  if(run.rules.manual){
     const count=burstCount();
     if(count>1) run.ammo[count]--;
     for(let i=0;i<count;i++){
@@ -1038,7 +1056,7 @@ function firePayload(){
   pop(systems.find(d=>d.id===type).label+'!',s.x,s.y-34,'#fff3b9',17);hud();
 }
 function durability(){
-  return baseDurability*(run.medium?2:1);
+  return baseDurability*run.rules.armor;
 }
 function dropAmmo(x,y,type=Math.random()<(run.sector>0?.42:.22)?3:2){
   drop(x,y,1,'ammo',type);
@@ -1086,7 +1104,7 @@ function strike(o,n,special=false){
   }else{
     drop(o.x,o.y,o.kind==='rock'?o.rich?6:Math.ceil(o.r/12):2);
   }
-  if(run.medium && (o.kind==='cache'||o.kind==='rival'||o.kind==='rock'&&o.rich||
+  if(run.rules.manual && (o.kind==='cache'||o.kind==='rival'||o.kind==='rock'&&o.rich||
     ['scout','blaster','turret','carrier','engine'].includes(o.kind)&&Math.random()<.28)) dropAmmo(o.x,o.y);
   if(o.kind==='scout'){
     for(const ally of run.enemies){
@@ -1110,6 +1128,7 @@ function newEnemy(kind,x,y,r,hp,extra={}){
 }
 function shotAt(kind,x,y,tx,ty,speed,damage){
   const a=Math.atan2(ty-y,tx-x);
+  speed*=run.rules.projectileSpeed;
   const hazard={kind,x,y,vx:Math.cos(a)*speed,vy:Math.sin(a)*speed,a,speed,age:0,life:8,r:kind==='orb'?6:5,damage};
   run.hazards.push(hazard);
   return hazard;
@@ -1119,22 +1138,22 @@ function rock(){
   newEnemy('rock',rand(31,W-33),-42,r,Math.ceil(r/13),{rich,vx:rand(-24,24),vy:rand(55,86),angle:rand(0,TAU),spin:rand(-.8,.8),edges:Array.from({length:8},()=>rand(.75,1.10))});
 }
 function scouts(){
-  const count=run.medium?7+Math.min(2,run.sector):5;
-  const squad={alive:count},center=run.medium?rand(180,W-180):rand(112,W-112);
+  const count=run.rules.manual?7+Math.min(2,run.sector):5;
+  const squad={alive:count},center=run.rules.manual?rand(180,W-180):rand(112,W-112);
   for(let i=0;i<count;i++){
     const wing=i-(count-1)/2;
-    const tx=clamp(center+wing*(run.medium?39:45),18,W-18);
-    const x=run.medium?tx:center+wing*41;
+    const tx=clamp(center+wing*(run.rules.manual?39:45),18,W-18);
+    const x=run.rules.manual?tx:center+wing*41;
     newEnemy('scout',x,-30-Math.abs(wing)*25,12,2,{tx,hover:H*.21-Math.abs(wing)*21,wait:2+Math.abs(wing)*.18,squad,state:0});
   }
 }
 function interceptors(){
-  const count=run.medium?5+Math.min(1,run.sector):3;
-  const squad={alive:count},center=run.medium?rand(174,W-174):rand(107,W-106);
-  const spacing=run.medium?57:71;
+  const count=run.rules.manual?5+Math.min(1,run.sector):3;
+  const squad={alive:count},center=run.rules.manual?rand(174,W-174):rand(107,W-106);
+  const spacing=run.rules.manual?57:71;
   for(let i=0;i<count;i++){
     const x=center+(i-(count-1)/2)*spacing;
-    newEnemy('blaster',x,-29-i*13,15,3,{base:x,hover:H*.24+i*(run.medium?13:25),tick:2.2+i*.36,aim:0,squad});
+    newEnemy('blaster',x,-29-i*13,15,3,{base:x,hover:H*.24+i*(run.rules.manual?13:25),tick:2.2+i*.36,aim:0,squad});
   }
 }
 function rival(dir=Math.random()<.5?1:-1, lane=.29){
@@ -1143,20 +1162,20 @@ function rival(dir=Math.random()<.5?1:-1, lane=.29){
 }
 function makeGate(){
   const rotate=run.spawnCount%3===0;
-  const x=run.medium?rand(131,W-131):run.spawnCount%2?105:315;
+  const x=run.rules.manual?rand(131,W-131):run.spawnCount%2?105:315;
   const gate={x,y:-44,age:0,angle:0,rotate,half:rotate?112:108,emitters:[]};
   run.gates.push(gate);
-  if(run.medium) gate.emitters=gateEnds(gate).map(p=>newEnemy('emitter',p.x,p.y,12,3,{gate}));
+  if(run.rules.manual) gate.emitters=gateEnds(gate).map(p=>newEnemy('emitter',p.x,p.y,12,3,{gate}));
 }
 function makeHulk(){
   const x=run.spawnCount%2?W*.34:W*.66, y=-50;
-  const parent=newEnemy('hulk',x,y,38,run.medium?6:Infinity,{direction:x<W/2?1:-1,holes:[]});
+  const parent=newEnemy('hulk',x,y,38,run.rules.manual?6:Infinity,{direction:x<W/2?1:-1,holes:[]});
   for(const offset of [-55,55]) newEnemy('barrel',x+offset,y,10,2,{parent,offset});
 }
 function anomaly(){
   const drift={x:rand(92,W-91),y:-70,r:rand(48,65),age:0};
   run.anomalies.push(drift);
-  if(run.medium) drift.core=newEnemy('anomaly-core',drift.x,drift.y,16,4,{anomaly:drift});
+  if(run.rules.manual) drift.core=newEnemy('anomaly-core',drift.x,drift.y,16,4,{anomaly:drift});
 }
 function makeGround(kind,x,y,extra={}){
   const r=kind==='engine'?20:kind==='car'?16:17;
@@ -1177,7 +1196,7 @@ function deployGround(){
 }
 function spawn(dt){
   if(run.transition>0) return;
-  if(run.medium && run.time>=run.ammoAt){
+  if(run.rules.manual && run.time>=run.ammoAt){
     dropAmmo(rand(44,W-44),-16,run.time<1||Math.random()<.64?2:3);
     run.ammoAt=run.time+rand(7.5,12);
   }
@@ -1193,11 +1212,11 @@ function spawn(dt){
   }else if(run.phase===1){
     if(i%5===4){
       const dir=rival();
-      if(run.medium) rival(-dir,.37);
+      if(run.rules.manual) rival(-dir,.37);
     }
     else if(i%2) interceptors();
     else scouts();
-    if(run.medium && i%4===2 && run.defeatedBosses.size && Math.random()<.80){
+    if(run.rules.manual && i%4===2 && run.defeatedBosses.size && Math.random()<.80){
       const defeated=[...run.defeatedBosses];
       const type=defeated[Math.floor(rand(0,defeated.length))];
       createBoss(type,{returning:true,lane:rand(74,W-74)});
@@ -1210,7 +1229,7 @@ function spawn(dt){
     else if(type===1) makeHulk();
     else if(type===2) anomaly();
     else newEnemy('cache',rand(78,W-82),-35,23,5,{prize:i%2?'prism':'comet'});
-    if(run.medium){
+    if(run.rules.manual){
       if(type===0||type===3) rock();
       if(type===1) interceptors();
       if(type===2) rival();
@@ -1220,12 +1239,12 @@ function spawn(dt){
   }else{
     deployGround();
     if(i%7===6) rival();
-    if(run.medium&&i%3===1) makeGround('turret',rand(64,W-64),-108);
+    if(run.rules.manual&&i%3===1) makeGround('turret',rand(64,W-64),-108);
     run.spawn=4.4;
   }
-  if(run.medium){
+  if(run.rules.manual){
     const paceFactor=[.79,.70,.69,.78][run.phase];
-    run.spawn*=paceFactor-.025*Math.min(3,run.sector);
+    run.spawn*=(paceFactor-.025*Math.min(3,run.sector))*run.rules.waveInterval;
   }
 }
 const bossTypes=[
@@ -1234,20 +1253,20 @@ const bossTypes=[
   {name:'Bastion', hull:'#8b5973', trim:'#f7a3ca', extra:[['turret',-43,25,17,24],['pod',43,25,17,24]]}
 ];
 function blockadeSize(){
-  return run.medium?Math.min(3,run.sector+1):1;
+  return run.rules.manual?Math.min(3,run.sector+1):1;
 }
 function phaseDuration(){
-  return phases[run.phase].time+(run.medium&&run.phase===4?18+12*(blockadeSize()-1):0);
+  return phases[run.phase].time+(run.rules.manual&&run.phase===4?18+12*(blockadeSize()-1):0);
 }
 function createBoss(type,{returning=false,lane=W/2,slot=0,total=1}={}){
   const size=returning?.47:total===1?1:total===2?.70:.54;
   const b={type,returning,lane,x:lane,y:-77,age:0,delay:slot*6.5,slot,size,parts:[]};
   run.bosses.push(b);
-  const fleetBoost=run.medium?1+Math.min(6,run.sector)*.10:1;
+  const fleetBoost=run.rules.manual?1+Math.min(6,run.sector)*.10:1;
   const modules=[['turret',-91,10,19,26],['pod',91,10,19,26],['core',0,-2,28,39],...bossTypes[type].extra];
   for(const [role,offset,dy,r,hp] of modules){
     b.parts.push(newEnemy('module',b.x+offset*size,b.y+dy*size,r*size,hp*fleetBoost*(returning?.43:1),{
-      role,offset,dy,boss:b,tick:(role==='core'?6.2:4.7)+(run.medium?slot*.44+(offset+91)/170:0)
+      role,offset,dy,boss:b,tick:(role==='core'?6.2:4.7)+(run.rules.manual?slot*.44+(offset+91)/170:0)
     }));
   }
 }
@@ -1266,7 +1285,7 @@ function updateBoss(b,dt){
 }
 function destroyBoss(b){
   b.destroyed=true;
-  if(run.medium) run.defeatedBosses.add(b.type);
+  if(run.rules.manual) run.defeatedBosses.add(b.type);
   if(!b.returning&&!run.bosses.some(o=>!o.returning&&!o.destroyed)){
     finishBoss(true,b);
     return;
@@ -1300,9 +1319,13 @@ function pace(dt){
   run.phaseTime+=dt;
   const speed=phases[run.phase].speed*run.speed;
   run.distance+=speed*dt;profile.km+=speed*dt;
-  if(run.phaseTime>=phaseDuration()){
-    if(run.phase===4) finishBoss(false);
-    else startPhase(run.phase+1);
+  if(run.phaseTime<phaseDuration()) return;
+  if(run.phase!==4) startPhase(run.phase+1);
+  else if(!run.rules.mustBreakBlockade) finishBoss(false);
+  else if(!run.blockadeOvertime){
+    run.blockadeOvertime=true;
+    banner('BLOCKADE OVERTIME','Enemy fire accelerates · Defeat the remaining bosses',3.8);
+    sfx('warn');hud();
   }
 }
 function updateEnemy(o,dt){
@@ -1363,14 +1386,15 @@ function updateEnemy(o,dt){
     if(o.tick<=0){
       if(o.role==='turret'){
         for(const dx of [-115,0,115]) shotAt('orb',o.x,o.y+14,clamp(s.x+dx,20,W-20),s.y,132,22);
-        o.tick=run.medium?Math.max(2.32,3.45-run.sector*.16):3.45;
+        o.tick=run.rules.manual?Math.max(2.32,3.45-run.sector*.16):3.45;
       }else if(o.role==='pod'){
         shotAt('missile',o.x,o.y+17,s.x,s.y,112,28);
-        o.tick=run.medium?Math.max(3.0,4.6-run.sector*.21):4.6;
+        o.tick=run.rules.manual?Math.max(3.0,4.6-run.sector*.21):4.6;
       }else{
         for(let i=-2;i<=2;i++) shotAt('orb',o.x,o.y+19,o.x+i*141,H,124,22);
-        o.tick=run.medium?Math.max(3.5,4.8-run.sector*.17):4.8;
+        o.tick=run.rules.manual?Math.max(3.5,4.8-run.sector*.17):4.8;
       }
+      if(run.blockadeOvertime) o.tick*=.8;
     }
   }else if(o.kind==='hulk'){
     o.x+=o.direction*16*drift;o.y+=93*drift;
@@ -1469,8 +1493,8 @@ function updateGates(dt){
 function updatePlayer(dt){
   const s=run.ship;
   s.inv=Math.max(0,s.inv-dt);s.afterHit+=dt;
-  if(s.shield<100 && s.afterHit>(s.critical?2.80:3.5)){
-    s.shield=Math.min(100,s.shield+dt*(s.critical?18:14));
+  if(s.shield<100 && s.afterHit>(s.critical?2.80:3.5)+run.rules.shieldDelay){
+    s.shield=Math.min(100,s.shield+dt*(s.critical?18:14)*run.rules.shieldRate);
     if(s.critical){s.critical=false;pop('SHIELD ONLINE',s.x,s.y,'#9af5ff');}
   }
   run.petClock=Math.max(0,run.petClock-dt);
@@ -1494,9 +1518,9 @@ function updatePlayer(dt){
     run.trailClock=.038;
     run.trails.push({x:s.x,y:s.y+15,life:.43,max:.43,vx:rand(-9,9),vy:105,type:profile.trail});
   }
-  const firing=keys.has(' ') || (run.medium?controlKeys.has('fire'):pointer||controlKeys.size||run.hyper>0);
+  const firing=keys.has(' ') || (run.rules.manual?controlKeys.has('fire'):pointer||controlKeys.size||run.hyper>0);
   if(firing && run.shotClock<=0) run.shotClock=fire();
-  if(run.phase===3 && run.bombClock<=0 && (!run.medium||firing)){
+  if(run.phase===3 && run.bombClock<=0 && (!run.rules.manual||firing)){
     const ground=run.ground.find(o=>!o.dead && Math.abs(o.x-s.x)<40 && o.y>s.y-103 && o.y<s.y+27);
     if(ground){
       run.bombClock=.45;
@@ -1964,7 +1988,7 @@ function drawHulk(g,o){
   }
   const sorted=o.holes.slice().sort((a,b)=>a-b);
   let start=-87;
-  const hullColor=o.hit&&run.medium?'#946d86':'#50465d';
+  const hullColor=o.hit&&run.rules.manual?'#946d86':'#50465d';
   for(const offset of [...sorted,111]){
     const end=Math.min(87,offset-24);
     if(end>start){
@@ -1976,7 +2000,7 @@ function drawHulk(g,o){
     }
     start=offset+24;
   }
-  if(run.medium){
+  if(run.rules.manual){
     g.save();g.translate(x,y);durabilityBar(g,o,'#ffa6d9',-19);g.restore();
   }
 }
@@ -2025,7 +2049,7 @@ function drawBoss(g,b){
   g.save();g.translate(b.x,b.y);g.scale(b.size,b.size);
   const design=bossTypes[b.type];
   const c=g.createLinearGradient(0,-58,0,42);
-  c.addColorStop(0,design.hull);c.addColorStop(.5,'#3d3456');c.addColorStop(1,'#1f203e');
+  c.addColorStop(0,run.blockadeOvertime?'#8e4657':design.hull);c.addColorStop(.5,'#3d3456');c.addColorStop(1,'#1f203e');
   polygon(g,[[-129,-13],[-116,-33],[-67,-31],[-41,-48],[-24,-48],[0,-60],[24,-48],[41,-48],[67,-31],[116,-33],[129,-13],[124,26],[101,33],[71,26],[44,33],[29,48],[-30,48],[-45,33],[-71,26],[-101,33],[-124,26]],c,design.trim,2);
   polygon(g,[[-32,-44],[32,-44],[49,-17],[31,28],[0,36],[-31,28],[-49,-17]],'#48496d','#9088b1',1.5);
   for(const dir of [-1,1]){
