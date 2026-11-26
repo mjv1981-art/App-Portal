@@ -420,7 +420,8 @@
       .monitor { grid-column: 1 / -1; }
       .directions {
         display: grid;
-        grid-template: ". up ." "left down right" / repeat(3, minmax(0, 1fr));
+        grid-template-areas: ". up ." "left down right";
+        grid-template-columns: repeat(3, minmax(0, 1fr));
         gap: 4px;
         width: min(100%, 156px);
       }
@@ -498,7 +499,8 @@
       }
       .directions {
         left: 7px;
-        grid-template: ". up ." "left down right" / repeat(3, clamp(44px, 6.5vw, 56px));
+        grid-template-areas: ". up ." "left down right";
+        grid-template-columns: repeat(3, clamp(44px, 6.5vw, 56px));
       }
       .weapons { right: 7px; grid-template-columns: clamp(46px, 7vw, 60px); }
       .touch-key {
