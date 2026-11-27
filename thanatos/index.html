@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <title>THANATOS — Chronicles of the Six Vessels</title>
+  <meta name="description" content="Rescue Princess Isolde and face the Soul-Harvester across six connected fantasy missions. Play free in your browser in Early Access." />
+  <link rel="canonical" href="https://mjv1981-art.github.io/App-Portal/thanatos/" />
+  <link rel="icon" type="image/png" href="assets/sprites/chrome/campaign_sigil.png" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="THANATOS — Chronicles of the Six Vessels" />
+  <meta property="og:description" content="Six connected fantasy missions. Play free in your browser in Early Access." />
+  <meta property="og:url" content="https://mjv1981-art.github.io/App-Portal/thanatos/" />
+  <meta property="og:image" content="https://mjv1981-art.github.io/App-Portal/thanatos/assets/sprites/chrome/launch_share.jpg" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="Saphirion, the Azure Dragon, faces the Soul-Harvester over a volcanic caldera." />
+  <meta name="twitter:card" content="summary_large_image" />
+  <link rel="stylesheet" href="styles.css?v=alpha" />
+</head>
+<body class="on-map">
+  <div id="rotate-overlay">
+    <div class="icon">📜</div>
+    <h2 style="color: var(--gold-light); margin: 0 0 8px; letter-spacing: 2px;">ROTATE TO LANDSCAPE</h2>
+    <p style="color: var(--muted); max-width: 320px; font-size: 14px;">
+      <i>THANATOS — Chronicles of the Six Vessels</i> is crafted for landscape viewports on mobile devices and desktop monitors. Active battles pause automatically until rotated.
+    </p>
+  </div>
+
+  <div id="game-shell">
+    <canvas id="game" width="1120" height="630"></canvas>
+
+    <div id="command-bar">
+      <header id="map-heading">
+        <div class="map-heading-copy">
+          <h1><span class="campaign-name">THANATOS</span><span class="campaign-subtitle">Chronicles of the Six Vessels</span></h1>
+          <div class="campaign-meta">
+            <span class="campaign-progress"><strong id="map-awakened-count">0 / 6</strong> Vessels Awakened</span>
+            <span class="campaign-help">Select a mission banner</span>
+          </div>
+        </div>
+      </header>
+      <div id="top-controls" role="group" aria-label="Game controls">
+        <button id="test-toggle" class="command-button command-toggle" type="button" title="Unlock all missions for testing" aria-pressed="false">
+          <span class="command-caption">Test</span><span class="command-state" id="test-state">Off</span>
+        </button>
+        <button id="pause-btn" class="command-button command-action hidden" type="button" title="Pause or return to the campaign map">
+          <span class="command-caption" id="pause-label">Map / Pause</span>
+        </button>
+        <button id="sound-toggle" class="command-button command-toggle" type="button" title="Music and sound effects" aria-pressed="true">
+          <span class="command-caption">Sound</span><span class="command-state" id="sound-state">On</span>
+        </button>
+        <button id="mode-toggle" class="command-button command-toggle" type="button" title="Change on-screen touch controls" aria-pressed="false">
+          <span class="command-caption">Touch</span><span class="command-state" id="touch-state">Auto</span>
+        </button>
+        <button id="fullscreen-toggle" class="command-button command-toggle" type="button" title="Toggle landscape fullscreen" aria-pressed="false">
+          <span class="command-caption">Fullscreen</span><span class="command-state" id="fullscreen-state">Enter</span>
+        </button>
+      </div>
+    </div>
+
+    <div id="touch-controls">
+      <div class="touch-dpad" id="touch-dpad">
+        <div class="dpad-btn dpad-up" data-key="ArrowUp">▲</div>
+        <div class="dpad-btn dpad-down" data-key="ArrowDown">▼</div>
+        <div class="dpad-btn dpad-left" data-key="ArrowLeft">◀</div>
+        <div class="dpad-btn dpad-right" data-key="ArrowRight">▶</div>
+      </div>
+      <div class="touch-actions" id="touch-actions">
+        <div class="act-btn rest" data-key="KeyR">LAND<br>REST</div>
+        <div class="act-btn stone" data-key="KeyX">BOULDER</div>
+        <div class="act-btn fire" data-key="Space">FLAME</div>
+      </div>
+    </div>
+
+    <!-- HoMM3 Scroll Briefing Card for Campaign Map Nodes -->
+    <div id="map-briefing" class="hidden" role="dialog" aria-modal="true">
+      <div class="homm-scroll-card">
+        <div class="scroll-header">
+          <canvas id="briefing-portrait" width="68" height="68"></canvas>
+          <div class="scroll-header-text">
+            <div id="briefing-status" class="briefing-badge active">ACTIVE CHRONICLE</div>
+            <h2 id="briefing-title">MISSION I — The Coast of Oaths</h2>
+            <div id="briefing-subtitle" class="scroll-subtitle">Veridias • Emerald Dragon (Rampart) • Sanctuary Citadel</div>
+          </div>
+        </div>
+
+        <div class="scroll-columns">
+          <div class="scroll-lore-col">
+            <p id="briefing-story" class="scroll-story"></p>
+            <div id="briefing-objective" class="scroll-objective"></div>
+            <div id="briefing-gate4-notice" class="gate4-notice hidden"></div>
+          </div>
+          <div id="briefing-controls" class="scroll-controls-col"></div>
+        </div>
+
+        <div class="dialog-actions">
+          <button class="btn-secondary" id="briefing-close-btn">BACK TO MAP</button>
+          <button class="btn-primary" id="briefing-embark-btn">EMBARK</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mission Pause / Victory / Defeat & Mission I Chronicle Overlay -->
+    <div id="overlay" class="hidden">
+      <div class="homm-dialog">
+        <h1>MISSION I: THE COAST OF OATHS</h1>
+        <div class="subtitle">Kaelen &amp; Veridias — Guardian of the Rampart–Castle Alliance</div>
+
+        <div class="controls-grid" id="overlay-controls-grid">
+          <div><span class="key">WASD / Arrows</span> : Soar &amp; Steer</div>
+          <div><span class="key">SPACE</span> : Dragon Flame</div>
+          <div><span class="key">X / SHIFT</span> : Hurl Boulder</div>
+          <div><span class="key">R / Land</span> : Perch &amp; Rest</div>
+        </div>
+
+        <div class="legend-note">
+          Bound by Elder Druids into <b>Veridias</b>, the <b>Rampart Emerald Dragon</b>, seer <b>Kaelen</b> must break the coastal blockade to seal the <b>Rampart–Castle Alliance</b>. Vanquish
+          <b>Marksmen, Halberdier Spearmen, Brigand Slingers, Giant Dragonfly Wasps &amp; Abyssal Sea Serpents</b>
+          to rescue <b>Princess Isolde</b> from the <b>Eastern Watchtower</b> and bear her home to the <b>Sanctuary Citadel</b>.<br><br>
+          Guard your <b>Chalice of Dragonblood</b> (replenishes when not breathing flame) and your
+          <b>Heart Medallion</b> (rises with wounds — alight upon solid earth and rest to steady your pulse!).
+        </div>
+
+        <div class="dialog-actions">
+          <button class="btn-secondary" id="return-map-btn">RETURN TO MAP</button>
+          <button class="btn-secondary hidden" id="restart-btn">RESTART MISSION</button>
+          <button class="btn-primary" id="start-btn">TAKE WING</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="art.js?v=preprod.3"></script>
+  <script src="audio.js"></script>
+  <script src="campaign_data.js"></script>
+  <script src="map.js"></script>
+  <script src="missions/m2.js"></script>
+  <script src="missions/m3.js"></script>
+  <script src="missions/m4.js?v=alpha"></script>
+  <script src="missions/m5.js?v=alpha"></script>
+  <script src="missions/saphirion_parts.js?v=preprod.3"></script>
+  <script src="missions/saphirion_motion.js?v=preprod.3"></script>
+  <script src="missions/m6.js?v=preprod.3"></script>
+  <script src="game.js"></script>
+</body>
+</html>

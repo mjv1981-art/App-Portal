@@ -1,0 +1,828 @@
+:root {
+  --bg: #080706;
+  --marble: #181614;
+  --marble-deep: #0f0d0b;
+  --gold-light: #f6df96;
+  --gold-mid: #c89b3c;
+  --gold-dark: #6e4f16;
+  --crimson: #a61c24;
+  --parchment: #ebd9b4;
+  --text: #f3e7c9;
+  --muted: #b9a882;
+}
+
+* {
+  box-sizing: border-box;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+
+.hidden {
+  display: none !important;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle at center, #1b1610 0%, #060504 100%);
+  color: var(--text);
+  font-family: 'Palatino Linotype', 'Book Antiqua', Palatino, Georgia, 'Times New Roman', serif;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#game-shell {
+  --mission-toolbar-height: 46px;
+  container: stage / inline-size;
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  max-width: 1360px;
+  max-height: 765px;
+  aspect-ratio: 16 / 9;
+  background: #0a0908;
+  border: 4px solid var(--gold-mid);
+  outline: 2px solid #2b1e08;
+  box-shadow:
+    inset 0 0 0 2px var(--gold-dark),
+    0 12px 48px rgba(0, 0, 0, 0.95),
+    0 0 28px rgba(200, 155, 60, 0.2);
+  overflow: hidden;
+}
+
+:fullscreen #game-shell,
+:-webkit-full-screen #game-shell,
+#game-shell:fullscreen,
+#game-shell:-webkit-full-screen {
+  max-width: 100vw;
+  max-height: 100vh;
+  border-width: 2px;
+}
+
+@media (max-aspect-ratio: 16/9) {
+  #game-shell {
+    width: 100vw;
+    height: calc(100vw * 9 / 16);
+  }
+}
+@media (min-aspect-ratio: 16/9) {
+  #game-shell {
+    height: 100vh;
+    width: calc(100vh * 16 / 9);
+  }
+}
+
+canvas#game {
+  display: block;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+}
+
+body:not(.on-map) canvas#game {
+  width: auto;
+  max-width: 100%;
+  height: calc(100% - var(--mission-toolbar-height));
+  margin: var(--mission-toolbar-height) auto 0;
+}
+
+/* Rotate device overlay for mobile portrait */
+#rotate-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: radial-gradient(circle, #1e1812 0%, #090705 100%);
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 24px;
+  border: 4px double var(--gold-mid);
+}
+#rotate-overlay .icon {
+  font-size: 48px;
+  margin-bottom: 14px;
+  animation: tilt 1.8s ease-in-out infinite;
+}
+@keyframes tilt {
+  0%, 100% { transform: rotate(0deg); }
+  50% { transform: rotate(-90deg); }
+}
+@media (pointer: coarse) and (orientation: portrait) {
+  #rotate-overlay {
+    display: flex;
+  }
+}
+
+/* HoMM3 Ornate Modal Overlay & Campaign Scroll Briefing Card */
+#overlay,
+#map-briefing {
+  position: absolute;
+  inset: 0;
+  background: rgba(8, 6, 4, 0.74);
+  backdrop-filter: blur(2px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 20;
+  padding: 12px;
+}
+
+body:not(.on-map) #overlay {
+  top: var(--mission-toolbar-height);
+}
+
+#map-briefing {
+  z-index: 26;
+}
+
+.homm-dialog,
+.homm-scroll-card {
+  max-width: 720px;
+  max-height: 82%;
+  width: 94%;
+  overflow-y: auto;
+  background:
+    radial-gradient(ellipse at top, rgba(64, 48, 28, 0.58), transparent 70%),
+    linear-gradient(180deg, #221b14 0%, #14100c 100%);
+  border: 3px solid var(--gold-mid);
+  box-shadow:
+    inset 0 0 0 2px #523b14,
+    inset 0 0 28px rgba(0, 0, 0, 0.85),
+    0 16px 44px rgba(0, 0, 0, 0.92);
+  padding: clamp(12px, 2.1vw, 22px) clamp(16px, 2.8vw, 30px);
+  text-align: center;
+  position: relative;
+}
+
+.homm-dialog::before,
+.homm-scroll-card::before {
+  content: '';
+  position: absolute;
+  inset: 5px;
+  border: 1px solid rgba(246, 223, 150, 0.28);
+  pointer-events: none;
+}
+
+#overlay h1 {
+  margin: 0 0 4px;
+  font-size: clamp(20px, 3.4vw, 36px);
+  letter-spacing: 3.5px;
+  font-weight: bold;
+  background: linear-gradient(180deg, #fff3c4 0%, #e4b653 55%, #9c6b19 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 3px 3px rgba(0, 0, 0, 0.95));
+  text-transform: uppercase;
+}
+
+#overlay .subtitle {
+  font-size: clamp(11px, 1.35vw, 14.5px);
+  color: #d7c08a;
+  letter-spacing: 2px;
+  margin-bottom: 12px;
+  text-transform: uppercase;
+  font-variant: small-caps;
+  text-shadow: 0 2px 2px #000;
+}
+
+/* Campaign Map Scroll Briefing Card Layout */
+.homm-scroll-card {
+  text-align: left;
+}
+
+.scroll-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding-bottom: 10px;
+  margin-bottom: 11px;
+  border-bottom: 1px solid rgba(200, 155, 60, 0.38);
+}
+
+#briefing-portrait {
+  width: 64px;
+  height: 64px;
+  flex-shrink: 0;
+  background: #120e0a;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.85);
+}
+
+.scroll-header-text {
+  min-width: 0;
+  flex: 1;
+}
+
+.briefing-badge {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: bold;
+  letter-spacing: 1.5px;
+  padding: 2px 7px;
+  margin-bottom: 3px;
+  border: 1px solid var(--gold-mid);
+  text-transform: uppercase;
+}
+.briefing-badge.active {
+  background: rgba(140, 32, 24, 0.65);
+  color: #ffe8a6;
+}
+.briefing-badge.conquered {
+  background: rgba(28, 96, 48, 0.72);
+  border-color: #7ee392;
+  color: #dcffe2;
+}
+.briefing-badge.preview {
+  background: rgba(68, 46, 94, 0.68);
+  border-color: #b59ad6;
+  color: #ebe0fa;
+}
+
+#briefing-title {
+  margin: 0 0 2px;
+  font-size: clamp(16px, 2.3vw, 23px);
+  letter-spacing: 1.5px;
+  color: var(--gold-light);
+  text-shadow: 0 2px 3px #000;
+}
+
+.scroll-subtitle {
+  font-size: clamp(11px, 1.25vw, 13px);
+  color: #cbb686;
+  letter-spacing: 0.6px;
+}
+
+.scroll-columns {
+  display: grid;
+  grid-template-columns: 1.45fr 1fr;
+  gap: 14px;
+  margin-bottom: 12px;
+}
+
+@media (max-width: 720px) {
+  .scroll-columns {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+}
+
+.scroll-story {
+  margin: 0 0 8px;
+  font-size: clamp(11px, 1.3vw, 13.5px);
+  line-height: 1.42;
+  color: var(--parchment);
+}
+
+.scroll-objective {
+  font-size: clamp(10.5px, 1.2vw, 12.5px);
+  line-height: 1.4;
+  color: #e3d3ae;
+  background: rgba(10, 8, 6, 0.65);
+  border-left: 3px solid var(--gold-mid);
+  padding: 7px 10px;
+}
+.scroll-objective b {
+  color: var(--gold-light);
+}
+.scroll-objective .mech-hint {
+  display: block;
+  margin-top: 4px;
+  color: #bfb08e;
+  font-style: italic;
+}
+
+.gate4-notice {
+  margin-top: 8px;
+  padding: 7px 10px;
+  background: linear-gradient(90deg, rgba(84, 52, 14, 0.78), rgba(44, 28, 12, 0.85));
+  border: 1px solid #e3b24c;
+  color: #ffebb0;
+  font-size: clamp(10.5px, 1.2vw, 12.5px);
+  line-height: 1.35;
+}
+
+@keyframes noticeFlash {
+  0%, 100% { filter: brightness(1); }
+  50% { filter: brightness(1.4); }
+}
+.pulse-notice {
+  animation: noticeFlash 0.35s ease 2;
+}
+
+.scroll-controls-col {
+  background: linear-gradient(180deg, rgba(14, 11, 8, 0.88), rgba(24, 19, 14, 0.88));
+  border: 1px solid #735622;
+  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.7);
+  padding: 9px 12px;
+  font-size: clamp(10.5px, 1.2vw, 12.5px);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.briefing-ctrl-title {
+  color: var(--gold-light);
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  font-size: 11px;
+  border-bottom: 1px solid rgba(200, 155, 60, 0.3);
+  padding-bottom: 4px;
+}
+
+.briefing-ctrl-list {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.briefing-ctrl-list span.key,
+.controls-grid span.key {
+  color: var(--gold-light);
+  font-weight: bold;
+  text-shadow: 0 1px 2px #000;
+}
+
+.briefing-touch-row {
+  font-size: 10.5px;
+  color: var(--muted);
+  padding-top: 5px;
+  border-top: 1px solid rgba(200, 155, 60, 0.22);
+}
+
+.touch-pill {
+  display: inline-block;
+  padding: 1px 5px;
+  margin: 1px;
+  background: rgba(46, 35, 22, 0.9);
+  border: 1px solid var(--gold-mid);
+  border-radius: 3px;
+  color: var(--gold-light);
+  font-size: 9.5px;
+  font-weight: bold;
+}
+
+.controls-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(150px, 1fr));
+  gap: 7px 18px;
+  background: linear-gradient(180deg, rgba(14, 11, 8, 0.85), rgba(24, 19, 14, 0.85));
+  border: 1px solid #735622;
+  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.7);
+  padding: 9px 15px;
+  margin-bottom: 12px;
+  font-size: clamp(11px, 1.3vw, 13.5px);
+  text-align: left;
+}
+
+.legend-note {
+  font-size: clamp(11px, 1.3vw, 13.5px);
+  color: var(--parchment);
+  line-height: 1.45;
+  margin-bottom: 14px;
+  text-shadow: 0 1px 2px #000;
+}
+.legend-note b {
+  color: var(--gold-light);
+}
+
+.dialog-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.homm-scroll-card .dialog-actions {
+  justify-content: flex-end;
+}
+
+.btn-primary,
+.btn-secondary {
+  border: 2px solid var(--gold-mid);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 235, 180, 0.38),
+    0 4px 12px rgba(0, 0, 0, 0.85);
+  padding: 8px 22px;
+  font-family: inherit;
+  font-size: clamp(12px, 1.5vw, 15.5px);
+  font-weight: bold;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  cursor: pointer;
+  text-shadow: 0 2px 2px #000;
+  transition: filter 0.15s ease, transform 0.1s ease;
+}
+
+.btn-primary {
+  background: linear-gradient(180deg, #8f1d24 0%, #5c0f14 60%, #3d090c 100%);
+  color: var(--gold-light);
+}
+
+.btn-secondary {
+  background: linear-gradient(180deg, #33281c 0%, #1d160f 65%, #120d09 100%);
+  color: #e3cfa1;
+}
+
+.btn-primary:hover,
+.btn-secondary:hover {
+  filter: brightness(1.18);
+  transform: translateY(-1px);
+}
+.btn-primary:active,
+.btn-secondary:active {
+  transform: translateY(1px);
+}
+
+.btn-primary.btn-disabled {
+  background: linear-gradient(180deg, #473c32 0%, #2b241e 100%);
+  border-color: #7d6b52;
+  color: #bfb29b;
+}
+
+/* Mobile Touch Controls (HoMM3 Gilded Medallions — Hidden on Campaign Map) */
+#touch-controls {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 15;
+  display: none;
+}
+body.touch-active #touch-controls {
+  display: block;
+}
+body.on-map #touch-controls,
+body.on-epilogue #touch-controls {
+  display: none !important;
+}
+
+#overlay.campaign-finale .controls-grid {
+  display: none;
+}
+
+.campaign-finale .legend-note {
+  text-align: center;
+}
+
+.finale-glory {
+  font-size: 1.15rem;
+}
+
+.vessel-badges {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.4rem;
+  margin-top: 0.75rem;
+}
+
+.vessel-badge {
+  padding: 0.25rem 0.6rem;
+  border: 1px solid #a6854a;
+  background: #192a40;
+  color: #f2ddaa;
+}
+
+.touch-dpad {
+  position: absolute;
+  left: max(14px, env(safe-area-inset-left, 14px));
+  bottom: max(14px, env(safe-area-inset-bottom, 14px));
+  width: 136px;
+  height: 136px;
+  pointer-events: auto;
+  touch-action: none;
+}
+.dpad-btn {
+  position: absolute;
+  width: 44px;
+  height: 44px;
+  background: radial-gradient(circle, rgba(44, 35, 24, 0.82), rgba(18, 14, 10, 0.88));
+  border: 2px solid var(--gold-mid);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.75);
+  border-radius: 6px;
+  color: var(--gold-light);
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  touch-action: none;
+  pointer-events: none;
+}
+.dpad-btn.active {
+  background: radial-gradient(circle, rgba(120, 88, 32, 0.9), rgba(50, 34, 12, 0.92));
+  border-color: var(--gold-light);
+}
+.dpad-up { left: 46px; top: 0; }
+.dpad-down { left: 46px; bottom: 0; }
+.dpad-left { left: 0; top: 46px; }
+.dpad-right { right: 0; top: 46px; }
+
+.touch-actions {
+  position: absolute;
+  right: max(16px, env(safe-area-inset-right, 16px));
+  bottom: max(16px, env(safe-area-inset-bottom, 16px));
+  display: flex;
+  gap: 10px;
+  align-items: flex-end;
+  pointer-events: auto;
+}
+.act-btn {
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, rgba(56, 44, 30, 0.88), rgba(18, 14, 10, 0.92));
+  border: 2px solid var(--gold-mid);
+  box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.8), 0 3px 10px rgba(0, 0, 0, 0.8);
+  color: var(--gold-light);
+  font-family: inherit;
+  font-size: 10px;
+  font-weight: bold;
+  letter-spacing: 0.5px;
+  text-align: center;
+  line-height: 1.15;
+  text-shadow: 0 1px 2px #000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  touch-action: none;
+}
+.act-btn.fire {
+  width: 68px;
+  height: 68px;
+  background: radial-gradient(circle at 35% 30%, rgba(140, 32, 24, 0.9), rgba(52, 10, 10, 0.95));
+  border-color: #f2c56b;
+  color: #ffe3a8;
+}
+.act-btn.stone {
+  border-color: #b8ab96;
+  color: #efe6d5;
+}
+.act-btn.rest {
+  background: radial-gradient(circle at 35% 30%, rgba(28, 82, 44, 0.88), rgba(12, 34, 18, 0.94));
+  border-color: #90d89e;
+  color: #d6f8dc;
+}
+.act-btn.rest.bite-ready {
+  background: radial-gradient(circle at 35% 30%, rgba(196, 24, 52, 0.95), rgba(76, 8, 22, 0.96));
+  border-color: #ff7a92;
+  color: #fff0f4;
+  box-shadow: inset 0 0 8px rgba(255, 160, 180, 0.45), 0 0 16px rgba(255, 42, 76, 0.85);
+}
+.act-btn.active {
+  transform: scale(0.93);
+  filter: brightness(1.25);
+}
+
+/* Campaign heading and shared map / mission controls */
+#command-bar {
+  position: absolute;
+  z-index: 25;
+  top: 8px;
+  right: 12px;
+  max-width: calc(100% - 24px);
+}
+
+body:not(.on-map) #command-bar {
+  inset: 0 0 auto;
+  height: var(--mission-toolbar-height);
+  max-width: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(180deg, #21170e, #0d0a08);
+  border-bottom: 1px solid var(--gold-dark);
+}
+
+#map-heading {
+  display: none;
+}
+
+body.on-map #command-bar {
+  left: 12px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: clamp(8px, 1.3cqi, 18px);
+  padding: clamp(6px, 0.8cqi, 10px) clamp(8px, 1.1cqi, 15px);
+  border: 1px solid #d9ae58;
+  background:
+    radial-gradient(ellipse at 20% 0, #41311e 0, transparent 68%),
+    linear-gradient(175deg, #251e18, #100d0d 63%);
+  box-shadow:
+    inset 0 0 0 2px #171112,
+    inset 0 0 0 3px #6a4d29,
+    inset 0 -7px 18px #0a0709b3,
+    0 5px 19px #0b0b12c9;
+}
+
+body.on-map #map-heading {
+  display: flex;
+  align-items: center;
+  gap: clamp(6px, 1cqi, 14px);
+  min-width: 0;
+}
+
+#map-heading::before {
+  content: '';
+  display: block;
+  flex: 0 0 clamp(29px, 4.6cqi, 59px);
+  aspect-ratio: 1;
+  background: url('assets/sprites/chrome/campaign_sigil.png') center / contain no-repeat;
+  filter: drop-shadow(0 3px 4px #000);
+}
+
+.map-heading-copy {
+  min-width: 0;
+}
+
+#map-heading h1 {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.12em 0.84em;
+  margin: 0 0 4px;
+  color: #ffe6a3;
+  line-height: 1.1;
+  text-shadow: 0 2px 3px #080608;
+  font-size: clamp(15px, 2.45cqi, 31px);
+}
+
+.campaign-name {
+  letter-spacing: 0.086em;
+}
+
+.campaign-subtitle {
+  color: #f1dcb0;
+  font-size: 0.56em;
+  line-height: 1.19;
+  letter-spacing: 0.03em;
+}
+
+.campaign-meta {
+  display: flex;
+  flex-wrap: wrap;
+  column-gap: 0.9em;
+  row-gap: 2px;
+  align-items: center;
+  font-size: clamp(10px, 1.19cqi, 14px);
+  line-height: 1.24;
+  color: #dbcdb2;
+}
+
+.campaign-progress {
+  white-space: nowrap;
+}
+
+.campaign-progress strong {
+  color: #ffe9a8;
+  font-variant-numeric: tabular-nums;
+}
+
+.campaign-help {
+  color: #c9bcaa;
+}
+
+#top-controls {
+  display: flex;
+  align-items: stretch;
+  gap: clamp(4px, 0.55cqi, 8px);
+}
+
+.command-button {
+  --command-edge: #b5904b;
+  --command-top: #463525;
+  --command-bottom: #1a1615;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-areas: 'icon caption' 'icon state';
+  align-content: center;
+  align-items: center;
+  column-gap: 6px;
+  row-gap: 1px;
+  min-height: 39px;
+  padding: 4px clamp(6px, 0.72cqi, 10px);
+  border: 1px solid var(--command-edge);
+  border-radius: 3px;
+  background: linear-gradient(175deg, var(--command-top), var(--command-bottom) 79%);
+  box-shadow:
+    inset 0 0 0 1px #130e0b,
+    inset 0 2px 0 #ffe2a52b,
+    0 2px 5px #0b0809c9;
+  color: #ffedc9;
+  font: bold clamp(10px, 1.16cqi, 13px)/1.12 Georgia, serif;
+  text-align: left;
+  text-shadow: 0 1px 2px #000;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.command-button::before {
+  content: '';
+  grid-area: icon;
+  width: clamp(17px, 2.2cqi, 26px);
+  aspect-ratio: 1;
+  background: var(--command-icon) center / contain no-repeat;
+  filter: drop-shadow(0 1px 2px #0b080a);
+}
+
+.command-caption {
+  grid-area: caption;
+}
+
+.command-state {
+  grid-area: state;
+  color: #cfbda0;
+  font: 600 0.87em/1.07 Georgia, serif;
+}
+
+.command-toggle[aria-pressed="true"] {
+  --command-edge: #e5bb68;
+  --command-top: #4d3d26;
+  --command-bottom: #252418;
+}
+
+.command-toggle[aria-pressed="true"] .command-state {
+  color: #e4efb7;
+}
+
+.command-action {
+  grid-template-areas: 'icon caption';
+  --command-edge: #d6ae62;
+  --command-top: #623d2b;
+}
+
+#test-toggle       { --command-icon: url('assets/sprites/chrome/test_compass.png'); }
+#sound-toggle      { --command-icon: url('assets/sprites/chrome/sound_horn.png'); }
+#mode-toggle       { --command-icon: url('assets/sprites/chrome/touch_gauntlet.png'); }
+#fullscreen-toggle { --command-icon: url('assets/sprites/chrome/fullscreen_frame.png'); }
+#pause-btn         { --command-icon: url('assets/sprites/chrome/pause_seal.png'); }
+
+body:not(.on-map) #test-toggle {
+  display: none;
+}
+
+.command-button:hover {
+  filter: brightness(1.16);
+  border-color: #ffe3a0;
+}
+
+.command-button:active {
+  transform: translateY(1px);
+}
+
+.command-button:focus-visible {
+  outline: 2px solid #fff2be;
+  outline-offset: 2px;
+}
+
+@container stage (max-width: 770px) {
+  #command-bar {
+    right: 7px;
+    top: 5px;
+    max-width: calc(100% - 14px);
+  }
+  body.on-map #command-bar {
+    left: 7px;
+  }
+  .command-button {
+    min-height: 40px;
+    column-gap: 4px;
+    padding-inline: 6px;
+  }
+  body.on-map .command-toggle {
+    grid-template-columns: 1fr;
+    grid-template-areas: 'icon' 'caption' 'state';
+    justify-items: center;
+    min-width: 45px;
+    min-height: 44px;
+    text-align: center;
+  }
+  #map-heading h1 {
+    flex-direction: column;
+  }
+  .campaign-subtitle {
+    font-size: clamp(11px, 1.85cqi, 15px);
+  }
+}
+
+@container stage (max-width: 455px) {
+  #map-heading::before {
+    display: none;
+  }
+  .command-button::before {
+    width: 16px;
+  }
+  body.on-map .command-toggle {
+    min-width: 36px;
+    padding-inline: 3px;
+  }
+}

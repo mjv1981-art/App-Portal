@@ -102,6 +102,7 @@
     </dialog>
     <script>
         const apps = [
+            { id: 19, title: "THANATOS · Chronicles of the Six Vessels", description: "Rescue Princess Isolde and face the Soul-Harvester across six connected fantasy missions. Play on desktop or mobile landscape.", url: "https://mjv1981-art.github.io/App-Portal/thanatos/", published: true, kind: "game", release: "Early Access", mediaDirectory: "./thanatos" },
             { id: 1, title: "Iurii M Repertoir", description: "A personal song repertoire with playable tracks. This app helps me organize and practice songs I can play and sing.", url: "https://mjv1981-art.github.io/Iurii-M-Repertoir/", published: true, kind: "app", cover: "iurii-m-repertoir-accordion" },
             { id: 2, title: "Hamsterland Declaration", description: "A fun declaration for my kids about the rules and joys of Hamsterland. Created to make rules more engaging for children.", url: "https://mjv1981-art.github.io/hamsterland-site/index.html", published: true, kind: "app", cover: "hamsterland-declaration" },
             { id: 3, title: "Pet Rat Monya", description: "A virtual pet app for my daughter to take care of her digital pet rat. Teaches responsibility and care for animals.", url: "https://mjv1981-art.github.io/pet-rat-monya/", published: false, kind: "app", cover: "pet-rat-monya-hooded" },
@@ -183,6 +184,7 @@
                         <span class="tag">${app.kind === 'game' ? 'Game' : 'App'}</span>
                         ${app.family ? `<span class="tag family">${app.family}</span>` : ''}
                         ${app.community ? '<span class="tag">Community project</span>' : ''}
+                        ${app.release ? `<span class="tag">${app.release}</span>` : ''}
                         ${app.signInRequired ? '<span class="tag">Sign-in required</span>' : ''}
                     </div>
                     <h2>${app.title}</h2>
