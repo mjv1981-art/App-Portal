@@ -3,7 +3,6 @@
 
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d');
-  const gameShell = document.getElementById('game-shell');
 
   const overlay = document.getElementById('overlay');
   const startBtn = document.getElementById('start-btn');
@@ -18,6 +17,9 @@
   const soundState = document.getElementById('sound-state');
   const fullscreenToggle = document.getElementById('fullscreen-toggle');
   const fullscreenState = document.getElementById('fullscreen-state');
+  const fullscreenMessage = document.getElementById('fullscreen-message');
+  const settingsToggle = document.getElementById('settings-toggle');
+  const topControls = document.getElementById('top-controls');
 
   const touchDpad = document.getElementById('touch-dpad');
   const touchActions = document.getElementById('touch-actions');
@@ -110,7 +112,22 @@
     });
   }
 
-  // ================= FULLSCREEN TOGGLE + LANDSCAPE ORIENTATION LOCK =================
+  // ================= MOBILE SETTINGS & FULLSCREEN =================
+  function setSettingsOpen(open) {
+    settingsToggle.setAttribute('aria-expanded', String(open));
+    if (!open) fullscreenMessage.classList.add('hidden');
+  }
+
+  settingsToggle.addEventListener('click', () => {
+    setSettingsOpen(settingsToggle.getAttribute('aria-expanded') !== 'true');
+  });
+
+  document.addEventListener('pointerdown', (e) => {
+    if (!topControls.contains(e.target) && !settingsToggle.contains(e.target)) {
+      setSettingsOpen(false);
+    }
+  });
+
   function getFullscreenElement() {
     return document.fullscreenElement || document.webkitFullscreenElement || null;
   }
@@ -120,6 +137,7 @@
     const active = Boolean(getFullscreenElement());
     fullscreenState.textContent = active ? 'Exit' : 'Enter';
     fullscreenToggle.setAttribute('aria-pressed', String(active));
+    if (active) fullscreenMessage.classList.add('hidden');
   }
 
   async function toggleFullscreen() {
@@ -127,14 +145,13 @@
       Audio.unlock();
       if (Audio.playUiClick) Audio.playUiClick();
     }
+    fullscreenMessage.classList.add('hidden');
     try {
       if (!getFullscreenElement()) {
-        const target = document.documentElement || gameShell;
-        if (target.requestFullscreen) {
-          await target.requestFullscreen();
-        } else if (target.webkitRequestFullscreen) {
-          target.webkitRequestFullscreen();
-        }
+        const target = document.documentElement;
+        const requestFullscreen = target.requestFullscreen || target.webkitRequestFullscreen;
+        if (!requestFullscreen) throw new Error('Fullscreen unavailable');
+        await requestFullscreen.call(target);
         try {
           if (screen.orientation && screen.orientation.lock) {
             await screen.orientation.lock('landscape');
@@ -150,7 +167,8 @@
         }
       }
     } catch (_) {
-      // Ignore fullscreen rejection gracefully
+      fullscreenMessage.textContent = 'Fullscreen is unavailable here. If you opened the game in an app, try opening the link in your browser.';
+      fullscreenMessage.classList.remove('hidden');
     }
     updateFullscreenLabel();
   }
@@ -173,6 +191,7 @@
 
   function handleEnvironmentChange() {
     if (isEnvironmentBlocked()) {
+      setSettingsOpen(false);
       clearAllKeys();
       if (Audio) {
         Audio.setDragonFire(false);
@@ -207,6 +226,12 @@
   }
 
   window.addEventListener('keydown', (e) => {
+    if (e.code === 'Escape' && settingsToggle.getAttribute('aria-expanded') === 'true') {
+      e.preventDefault();
+      setSettingsOpen(false);
+      settingsToggle.focus();
+      return;
+    }
     if ((e.code === 'Enter' || e.code === 'Space') && e.target?.closest?.('button')) return;
     if (['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.code)) {
       e.preventDefault();
@@ -1249,6 +1274,7 @@
     appScreen = 'mission';
 
     if (WorldMap) WorldMap.setActive(false);
+    setSettingsOpen(false);
     document.body.classList.remove('on-map', 'on-epilogue');
     overlay.classList.add('hidden');
     if (pauseBtn) {
@@ -1325,6 +1351,7 @@
 
     overlay.classList.add('hidden');
     if (pauseBtn) pauseBtn.classList.add('hidden');
+    setSettingsOpen(false);
     document.body.classList.remove('on-epilogue');
     document.body.classList.add('on-map');
 

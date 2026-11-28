@@ -16,7 +16,7 @@
   <meta property="og:image:height" content="630" />
   <meta property="og:image:alt" content="Saphirion, the Azure Dragon, faces the Soul-Harvester over a volcanic caldera." />
   <meta name="twitter:card" content="summary_large_image" />
-  <link rel="stylesheet" href="styles.css?v=alpha" />
+  <link rel="stylesheet" href="styles.css?v=mobile-toolbar.1" />
 </head>
 <body class="on-map">
   <div id="rotate-overlay">
@@ -40,12 +40,15 @@
           </div>
         </div>
       </header>
-      <div id="top-controls" role="group" aria-label="Game controls">
+      <button id="pause-btn" class="command-button command-action hidden" type="button" title="Pause or return to the campaign map">
+        <span class="command-caption" id="pause-label">Map / Pause</span>
+      </button>
+      <button id="settings-toggle" class="command-button command-action" type="button" aria-expanded="false" aria-controls="top-controls">
+        <span class="command-caption">Settings</span>
+      </button>
+      <div id="top-controls" role="group" aria-label="Game settings">
         <button id="test-toggle" class="command-button command-toggle" type="button" title="Unlock all missions for testing" aria-pressed="false">
           <span class="command-caption">Test</span><span class="command-state" id="test-state">Off</span>
-        </button>
-        <button id="pause-btn" class="command-button command-action hidden" type="button" title="Pause or return to the campaign map">
-          <span class="command-caption" id="pause-label">Map / Pause</span>
         </button>
         <button id="sound-toggle" class="command-button command-toggle" type="button" title="Music and sound effects" aria-pressed="true">
           <span class="command-caption">Sound</span><span class="command-state" id="sound-state">On</span>
@@ -56,6 +59,7 @@
         <button id="fullscreen-toggle" class="command-button command-toggle" type="button" title="Toggle landscape fullscreen" aria-pressed="false">
           <span class="command-caption">Fullscreen</span><span class="command-state" id="fullscreen-state">Enter</span>
         </button>
+        <p id="fullscreen-message" class="hidden" role="status"></p>
       </div>
     </div>
 
@@ -142,6 +146,6 @@
   <script src="missions/saphirion_parts.js?v=preprod.3"></script>
   <script src="missions/saphirion_motion.js?v=preprod.3"></script>
   <script src="missions/m6.js?v=preprod.3"></script>
-  <script src="game.js"></script>
+  <script src="game.js?v=mobile-toolbar.1"></script>
 </body>
 </html>
